@@ -1,19 +1,23 @@
 import requests
 import pandas as pd
 import ta
+from datetime import datetime
 from telegram import Bot, Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
-from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # 🟢👇 यहाँ अपना Telegram Bot Token और Group ID भरो:
 TOKEN = "7288227342:AAEYO8sfAMjnJufCgO6DzMwd-UBeQRjqA5U"
-CHAT_ID = -1001581230890 # 👈 यहाँ अपना Telegram group ka ID डालो (negative number से शुरू होता है)
+CHAT_ID = -1001581230890  # 👈 यहाँ अपना Telegram group ka ID डालो (negative number से शुरू होता है)
 
+# Bot ko initialize karen
 bot = Bot(token=TOKEN)
+
+# Updater ko initialize karen
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
+# Trading pairs and timeframes
 chart_links = {
     "BTCUSDT": "https://www.tradingview.com/symbols/BTCUSDT/",
     "XAUUSD": "https://www.tradingview.com/symbols/XAUUSD/"
@@ -25,6 +29,7 @@ timeframes = {
     "4h": "4h"
 }
 
+# Function to fetch Binance Klines (OHLCV data)
 def fetch_binance_klines(symbol, interval='1h', limit=100):
     url = f'https://api.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&limit={limit}'
     try:
@@ -45,6 +50,7 @@ def fetch_binance_klines(symbol, interval='1h', limit=100):
         print(f"[ERROR] Fetching Binance data failed for {symbol}: {e}")
         return pd.DataFrame()
 
+# Function to fetch Open Interest data
 def fetch_open_interest(symbol):
     try:
         url = f'https://fapi.binance.com/futures/data/openInterestHist?symbol={symbol}&period=5m&limit=1'
@@ -57,6 +63,7 @@ def fetch_open_interest(symbol):
         print(f"[ERROR] Fetching OI failed for {symbol}: {e}")
     return None
 
+# Function to generate trading signal
 def generate_signal(symbol, timeframe):
     df = fetch_binance_klines(symbol, interval=timeframe)
     if df.empty:
@@ -96,6 +103,7 @@ def generate_signal(symbol, timeframe):
         "sl": sl
     }
 
+# Function to send hourly signals
 def send_hourly_signal(context: CallbackContext):
     symbols = ["BTCUSDT", "XAUUSD"]
     for symbol in symbols:
@@ -126,11 +134,13 @@ def send_hourly_signal(context: CallbackContext):
 
         context.bot.send_message(chat_id=CHAT_ID, text=message)
 
+# Start command function
 def start(update: Update, context: CallbackContext):
     update.message.reply_text("✅ Welcome! This bot sends BTC & Gold signals every hour.")
 
 dispatcher.add_handler(CommandHandler("start", start))
 
+# Scheduler to run the function every hour
 scheduler = BackgroundScheduler()
 scheduler.add_job(send_hourly_signal, 'interval', hours=1, args=[CallbackContext.from_bot(bot)])
 scheduler.start()
@@ -140,3 +150,4 @@ send_hourly_signal(CallbackContext.from_bot(bot))
 
 updater.start_polling()
 updater.idle()
+
