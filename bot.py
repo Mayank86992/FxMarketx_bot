@@ -7,8 +7,8 @@ from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # 🟢👇 यहाँ अपना Telegram Bot Token और Group ID भरो:
-TOKEN = "YOUR_BOT_TOKEN_HERE"
-CHAT_ID = -1001234567890  # 👈 यहाँ अपना Telegram group ka ID डालो (negative number से शुरू होता है)
+TOKEN = "7288227342:AAEYO8sfAMjnJufCgO6DzMwd-UBeQRjqA5U"
+CHAT_ID = -1001581230890 # 👈 यहाँ अपना Telegram group ka ID डालो (negative number से शुरू होता है)
 
 bot = Bot(token=TOKEN)
 updater = Updater(token=TOKEN, use_context=True)
